@@ -31,6 +31,15 @@ jobs:
         run: python3 kit/prepara.py
       - name: Compila OpenBOR per il web
         run: bash kit/build-web.sh
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.7'
+      - name: Crea l'APK Android
+        run: bash kit/build-apk.sh
       - uses: actions/upload-pages-artifact@v3
         with:
           path: kit/sito
