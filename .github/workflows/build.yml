@@ -1,0 +1,45 @@
+name: Compila e pubblica
+
+on:
+  push:
+  workflow_dispatch:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: mymindstorm/setup-emsdk@v14
+        with:
+          version: 3.1.64
+      - name: Estrai il kit
+        run: unzip -q -o "$(ls *.zip | head -n1)"
+      - name: Scarica sorgente e gioco
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 kit/prepara.py
+      - name: Compila OpenBOR per il web
+        run: bash kit/build-web.sh
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: kit/sito
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
